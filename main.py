@@ -87,7 +87,7 @@ class MongodbManager:
 
     def loop_forever(self):
         self.build_selector()
-        self.db.test.update_many({'flag': 1},
+        self.db.comic.update_many({'flag': 1},
                                  {'$set': {'flag': 0}})
         while True:
             self.add_data()
@@ -98,13 +98,13 @@ class MongodbManager:
     def callback(chapter):
         try:
             self = chapter['self']
-            self.db.test.update_one({'_id': chapter['_id']}, {"$set": {"flag": 2}})
+            self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 2}})
         except:
             print("Callback Error.")
 
     def add_data(self):
         try:
-            result = self.db.test.find(self.selector)
+            result = self.db.comic.find(self.selector)
             for i in result:
                 chapter = dict()
                 chapter['_id'] = i['_id']
@@ -114,7 +114,7 @@ class MongodbManager:
                 chapter['self'] = self
                 chapter['callback'] = self.callback
                 self.dm.append(chapter)
-                self.db.test.update_one({'_id': i['_id']}, {'$set': {'flag': 1}})
+                self.db.comic.update_one({'_id': i['_id']}, {'$set': {'flag': 1}})
         except:
             print("Fetch Data Error.")
 
