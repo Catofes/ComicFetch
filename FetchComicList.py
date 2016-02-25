@@ -20,17 +20,20 @@ class Handler(BaseHandler):
         self.db = self.client.comic
         return self.db
 
-    @every(minutes=10)
+    @every(minutes=6*60)
     def on_start(self):
         self.get_db()
         other_comic_lists = self.db.comic_list.find({})
         for i in other_comic_lists:
-            if re.match("http://www.dmzj.com/info/", i['url']):
-                self.crawl(i['url'], callback=self.new_comic_index)
-            elif re.match("http://manhua.dmzj.com/", i['url']):
-                self.crawl(i['url'], callback=self.old_comic_index)
-            else:
-                pass
+            self.update_comic(i['url'])
+
+    def update_comic(self, url):
+        if re.match("http://www.dmzj.com/info/", url):
+            self.crawl(url, callback=self.new_comic_index)
+        elif re.match("http://manhua.dmzj.com/", url):
+            self.crawl(url, callback=self.old_comic_index)
+        else:
+            pass
 
     @config(priority=1, age= 5 * 60)
     def old_comic_index(self, response):
@@ -78,6 +81,14 @@ class Handler(BaseHandler):
                 return self.download_chapter(data)
             return
         return self.download_chapter(data)
+
+    def on_message(self, project, message):
+        self.get_db()
+        for each in message:
+            result = self.db.comic_list.find_one({'url': each['url']})
+            if result:
+                if result['update_time'] < each['time']:
+                    self.update_comic(each['url'])
 
     def download_chapter(self, data):
         for i in range(0,2):

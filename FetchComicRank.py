@@ -31,3 +31,4 @@ class Handler(BaseHandler):
         self.client = MongoClient()
         self.db = self.client.comic
         return self.db
+    
