@@ -64,7 +64,7 @@ class DownloadThread(threading.Thread):
             try:
                 req = urllib.request.Request(v)
                 req.add_header('Referer', referer)
-                with urllib.request.urlopen(v) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
+                with urllib.request.urlopen(req) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
                     data = response.read()  # a `bytes` object
                     out_file.write(data)
                     out_file.close()
