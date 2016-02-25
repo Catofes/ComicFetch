@@ -57,11 +57,17 @@ class DownloadThread(threading.Thread):
         name = chapter['name']
         chapter_name = chapter['chapter']
         pic = chapter['pic']
+        referer = chapter['referer']
         path = self.manager.download_path + name + '/' + chapter_name
         os.makedirs(path, exist_ok=True)
         for (k, v) in pic.items():
             try:
-                urllib.request.urlretrieve("http://" + urllib.parse.quote(v[7:]), path + "/" + str(k) + '.jpg')
+                req = urllib.request.Request(v)
+                req.add_header('Referer', referer)
+                with urllib.request.urlopen(v) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
+                    data = response.read()  # a `bytes` object
+                    out_file.write(data)
+                    out_file.close()
             except:
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
@@ -116,6 +122,8 @@ class MongodbManager:
                 chapter['pic'] = i['pic']
                 chapter['chapter'] = i['chapter']
                 chapter['self'] = self
+                comic_list = self.db.comic_list.find_one({'name': i['name']})
+                chapter['referer'] = comic_list['url']
                 chapter['callback'] = self.callback
                 self.dm.append(chapter)
                 self.db.comic.update_one({'_id': i['_id']}, {'$set': {'flag': 1}})

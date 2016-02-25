@@ -44,12 +44,11 @@ class Main:
     def failed(self):
         p = subprocess.Popen('ip link set eth1 down', shell=True)
         p.wait()
-        p = subprocess.Popen('ip link set eth1 up', shell=True)
-        p.wait()
-        p = subprocess.Popen('systemctl restart dhcped@eth1', shell=True)
+        p = subprocess.Popen('systemctl restart dhcpcd@eth1', shell=True)
         p.wait()
         p = subprocess.Popen('systemctl restart railgun-network', shell=True)
         p.wait()
+        time.sleep(10)
 
 
 if __name__ == '__main__':
