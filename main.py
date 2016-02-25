@@ -46,12 +46,14 @@ class DownloadThread(threading.Thread):
                 chapter = self.manager.data.get(False)
             except queue.Empty:
                 self.manager.event.clear()
-            if not self.download(chapter):
-                self.manager.append(chapter)
+                continue
+            if not chapter:
+                continue
+            result = self.download(chapter)
+            callback = chapter['callback']
+            callback(chapter, result)
 
     def download(self, chapter):
-        if not chapter:
-            return True
         name = chapter['name']
         chapter_name = chapter['chapter']
         pic = chapter['pic']
@@ -64,9 +66,7 @@ class DownloadThread(threading.Thread):
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
             print("Download : " + name + " " + chapter_name + " " + str(k))
-        callback = chapter['callback']
-        callback(chapter)
-        time.sleep(1)
+        time.sleep(10)
         return True
 
 
@@ -88,17 +88,21 @@ class MongodbManager:
     def loop_forever(self):
         self.build_selector()
         self.db.comic.update_many({'flag': 1},
-                                 {'$set': {'flag': 0}})
+                                  {'$set': {'flag': 0}})
         while True:
             self.add_data()
             print(self.dm.data.qsize())
             time.sleep(10)
 
     @staticmethod
-    def callback(chapter):
+    def callback(chapter, result):
         try:
-            self = chapter['self']
-            self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 2}})
+            if result:
+                self = chapter['self']
+                self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 2}})
+            else:
+                self = chapter['self']
+                self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 0}})
         except:
             print("Callback Error.")
 
