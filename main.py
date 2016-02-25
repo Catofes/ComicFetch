@@ -7,6 +7,7 @@ import os
 import urllib.request, urllib.parse
 import time
 import argparse
+import random
 
 
 class DownloadManager:
@@ -40,7 +41,7 @@ class DownloadThread(threading.Thread):
 
     def run(self):
         while True:
-            self.manager.event.wait(20)
+            self.manager.event.wait(int(random.randint(20, 60)))
             chapter = None
             try:
                 chapter = self.manager.data.get(False)
@@ -98,7 +99,7 @@ class MongodbManager:
         while True:
             self.add_data()
             print(self.dm.data.qsize())
-            time.sleep(10)
+            time.sleep(60)
 
     @staticmethod
     def callback(chapter, result):
