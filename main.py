@@ -98,7 +98,6 @@ class MongodbManager:
                                   {'$set': {'flag': 0}})
         while True:
             self.add_data()
-            print(self.dm.data.qsize())
             time.sleep(60)
 
     @staticmethod
