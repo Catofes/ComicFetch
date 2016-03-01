@@ -122,8 +122,11 @@ class MongodbManager:
                 chapter['pic'] = i['pic']
                 chapter['chapter'] = i['chapter']
                 chapter['self'] = self
-                comic_list = self.db.comic_list.find_one({'name': i['name']})
-                chapter['referer'] = comic_list['url']
+                if 'referer' not in i.keys():
+                    comic_list = self.db.comic_list.find_one({'name': i['name']})
+                    chapter['referer'] = comic_list['url']
+                else:
+                    chapter['referer'] = i['referer']
                 chapter['callback'] = self.callback
                 self.dm.append(chapter)
                 self.db.comic.update_one({'_id': i['_id']}, {'$set': {'flag': 1}})
