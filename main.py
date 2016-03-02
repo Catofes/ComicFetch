@@ -98,6 +98,8 @@ class MongodbManager:
                                   {'$set': {'flag': 0}})
         while True:
             self.add_data()
+            if self.comic_name:
+                break
             time.sleep(60)
 
     @staticmethod
