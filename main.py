@@ -8,6 +8,7 @@ import urllib.request, urllib.parse
 import time
 import argparse
 import random
+import traceback
 
 
 class DownloadManager:
@@ -69,7 +70,9 @@ class DownloadThread(threading.Thread):
                     data = response.read()  # a `bytes` object
                     out_file.write(data)
                     out_file.close()
-            except:
+            except Exception as e:
+                traceback.print_exc()
+                print(e.message)
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
             print("Download : " + name + " " + chapter_name + " " + str(k))
