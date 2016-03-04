@@ -45,7 +45,8 @@ class Handler(BaseHandler):
         t = time.time()
         name = response.doc('h1').text()
         self.db.comic_list.update_one({'url': response.url},
-                                      {'$set': {'update_time': time.time(), 'name': name}})
+                                      {'$set': {'update_time': time.time(), 'name': name, 'mobi': False, 'mobi_size': 0,
+                                                'mobi_failed': 0}})
         chapters = []
         for each in response.doc('.cartoon_online_border li a').items():
             chapters.append(each)
@@ -55,18 +56,20 @@ class Handler(BaseHandler):
                 next_name = chapters[i + 1].text()
             else:
                 next_name = None
-            self.crawl(each.attr.href, callback=self.dmzj_comic_chapter, save=
-            {'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name}, fetch_type='js')
             result = self.db.comic.find_one({'name': name, 'chapter': each.text()})
             if result and ('next' not in result.keys() or (not result['next'] and next_name)):
                 self.db.comic.update_one({'_id': result['_id']}, {'$set': {'next': next_name}})
+            if not result or result['flag'] == -1:
+                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter, save=
+                {'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name}, fetch_type='js')
 
     @config(priority=1, age=5 * 60)
     def dmzj_new_comic_index(self, response):
         t = time.time()
         name = response.doc('title').text().split(" ")[0]
         self.db.comic_list.update_one({'url': response.url},
-                                      {'$set': {'update_time': time.time(), 'name': name}})
+                                      {'$set': {'update_time': time.time(), 'name': name, 'mobi': False, 'mobi_size': 0,
+                                                'mobi_failed': 0}})
         chapters = []
         for each in response.doc('.zj_list > .tab-content-selected li a').items():
             chapters.append(each)
@@ -76,13 +79,14 @@ class Handler(BaseHandler):
                 next_name = chapters[i - 1].text()
             else:
                 next_name = None
-            self.crawl(each.attr.href, callback=self.dmzj_comic_chapter, save=
-            {'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name}, fetch_type='js')
             result = self.db.comic.find_one({'name': name, 'chapter': each.text()})
             if result and ('next' not in result.keys() or (not result['next'] and next_name)):
                 self.db.comic.update_one({'_id': result['_id']}, {'$set': {'next': next_name}})
+            if not result or result['flag'] == -1:
+                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter, save=
+                {'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name}, fetch_type='js')
 
-    @config(priority=2)
+    @config(priority=2, age=5 * 60)
     def dmzj_comic_chapter(self, response):
         data = response.save
         flag = False
@@ -123,12 +127,16 @@ class Handler(BaseHandler):
         data['flag'] = 0
         data['mobi'] = False
         data['mobi_size'] = 0
+        data['mobi_failed'] = 0
         for i in range(0, 2):
             try:
                 result = self.db.comic.find_one({'name': data['name'], 'chapter': data['chapter']})
                 if not result or not result['pic']:
                     self.db.comic.insert_one(data)
                     print("Saved:    " + data['name'] + "    " + data['chapter'])
+                if result and result['flag'] == -1:
+                    self.db.comic.update_one({'_id': result['_id']}, {"$set": data})
+                    print("Updated:    " + data['name'] + "    " + data['chapter'])
                 break
             except:
                 self.get_db()

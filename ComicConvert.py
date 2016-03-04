@@ -114,6 +114,8 @@ class Convert:
         if result:
             if self.convert_a_comic(result):
                 self.comic_callback(result)
+            else:
+                self.comic_callback(result, False)
             return True
         else:
             return False
