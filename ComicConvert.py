@@ -12,24 +12,30 @@ class Convert:
         self.pic_path = os.path.abspath(".") + "/Download/"
         self.mobi_path = os.path.abspath(".") + "/mobi/"
 
-    def chapter_callback(self, chapter):
-        print("Converted: " + chapter['name'] + chapter['chapter'])
-        self.db.comic.update_one({"_id": chapter['_id']}, {
-            "$set": {
-                "mobi_size": chapter['mobi_size'],
-                "mobi": True
-            }
-        })
-        self.db.comic_list.update_one({"name": chapter["name"]}, {"$set": {"mobi": False}})
+    def chapter_callback(self, chapter, flag=True):
+        if flag:
+            print("Converted: " + chapter['name'] + chapter['chapter'])
+            self.db.comic.update_one({"_id": chapter['_id']}, {
+                "$set": {
+                    "mobi_size": chapter['mobi_size'],
+                    "mobi": True
+                }
+            })
+            self.db.comic_list.update_one({"name": chapter["name"]}, {"$set": {"mobi": False}})
+        else:
+            self.db.comic.update_one({"_id": chapter['_id']}, {"$set": {"flag": -1}})
 
-    def comic_callback(self, comic):
-        print("Converted: " + comic['name'])
-        self.db.comic.update_one({"_id": comic['_id']}, {
-            "$set": {
-                "mobi_size": comic['mobi_size'],
-                "mobi": True
-            }
-        })
+    def comic_callback(self, comic, flag=True):
+        if flag:
+            print("Converted: " + comic['name'])
+            self.db.comic_list.update_one({"_id": comic['_id']}, {
+                "$set": {
+                    "mobi_size": comic['mobi_size'],
+                    "mobi": True
+                }
+            })
+        else:
+            pass
 
     def convert_a_chapter(self, input_chapter):
         name = input_chapter['name']
