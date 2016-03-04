@@ -99,7 +99,7 @@ class Convert:
         return True
 
     def fetch_a_chapter(self):
-        result = self.db.comic.find_one({"flag": 2, "mobi": False, "mobi_failed": {"$lte": 5}})
+        result = self.db.comic.find_one({"flag": 2, "mobi": False, "mobi_failed": {"$lte": 3}})
         if result:
             if self.convert_a_chapter(result):
                 self.chapter_callback(result)
@@ -110,7 +110,7 @@ class Convert:
             return False
 
     def fetch_a_comic(self):
-        result = self.db.comic_list.find_one({"mobi": False, "mobi_failed": {"$lte": 5}})
+        result = self.db.comic_list.find_one({"mobi": False, "mobi_failed": {"$lte": 3}})
         if result:
             if self.convert_a_comic(result):
                 self.comic_callback(result)
