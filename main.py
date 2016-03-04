@@ -110,7 +110,7 @@ class MongodbManager:
                 self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 2}})
             else:
                 self = chapter['self']
-                self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 0}})
+                self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": -1}})
         except:
             print("Callback Error.")
 
