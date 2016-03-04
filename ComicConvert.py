@@ -23,7 +23,11 @@ class Convert:
             })
             self.db.comic_list.update_one({"name": chapter["name"]}, {"$set": {"mobi": False}})
         else:
-            self.db.comic.update_one({"_id": chapter['_id']}, {"$set": {"flag": -1}})
+            if 'mobi_failed' in chapter.keys():
+                failed = chapter['mobi_failed'] + 1
+            else:
+                failed = 1
+            self.db.comic.update_one({"_id": chapter['_id']}, {"$set": {"mobi_failed": failed}})
 
     def comic_callback(self, comic, flag=True):
         if flag:
@@ -35,7 +39,11 @@ class Convert:
                 }
             })
         else:
-            pass
+            if 'mobi_failed' in comic.keys():
+                failed = comic['mobi_failed'] + 1
+            else:
+                failed = 1
+            self.db.comic.update_one({"_id": comic['_id']}, {"$set": {"mobi_failed": failed}})
 
     def convert_a_chapter(self, input_chapter):
         name = input_chapter['name']
@@ -91,7 +99,7 @@ class Convert:
         return True
 
     def fetch_a_chapter(self):
-        result = self.db.comic.find_one({"flag": 2, "mobi": False})
+        result = self.db.comic.find_one({"flag": 2, "mobi": False, "mobi_failed": {"$lte": 5}})
         if result:
             if self.convert_a_chapter(result):
                 self.chapter_callback(result)
@@ -102,7 +110,7 @@ class Convert:
             return False
 
     def fetch_a_comic(self):
-        result = self.db.comic_list.find_one({"mobi": False})
+        result = self.db.comic_list.find_one({"mobi": False, "mobi_failed": {"$lte": 5}})
         if result:
             if self.convert_a_comic(result):
                 self.comic_callback(result)
