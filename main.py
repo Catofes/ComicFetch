@@ -75,7 +75,7 @@ class DownloadThread(threading.Thread):
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
             print("Download : " + name + " " + chapter_name + " " + str(k))
-        time.sleep(10)
+        time.sleep(3)
         return True
 
 
