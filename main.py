@@ -64,15 +64,14 @@ class DownloadThread(threading.Thread):
         os.makedirs(path, exist_ok=True)
         for (k, v) in pic.items():
             try:
-                req = urllib.request.Request(v)
+                req = urllib.request.Request(urllib.parse.urlencode(v))
                 req.add_header('Referer', referer)
                 with urllib.request.urlopen(req) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
                     data = response.read()  # a `bytes` object
                     out_file.write(data)
                     out_file.close()
-            except Exception as e:
+            except:
                 traceback.print_exc()
-                print(e.message)
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
             print("Download : " + name + " " + chapter_name + " " + str(k))
