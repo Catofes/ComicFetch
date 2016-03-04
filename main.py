@@ -64,7 +64,7 @@ class DownloadThread(threading.Thread):
         os.makedirs(path, exist_ok=True)
         for (k, v) in pic.items():
             try:
-                req = urllib.request.Request(urllib.parse.quote(v))
+                req = urllib.request.Request(urllib.parse.quote(v, ":?=/"))
                 req.add_header('Referer', referer)
                 with urllib.request.urlopen(req) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
                     data = response.read()  # a `bytes` object
