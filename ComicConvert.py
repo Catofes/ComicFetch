@@ -95,6 +95,8 @@ class Convert:
         if result:
             if self.convert_a_chapter(result):
                 self.chapter_callback(result)
+            else:
+                self.chapter_callback(result, False)
             return True
         else:
             return False
