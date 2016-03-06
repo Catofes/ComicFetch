@@ -76,6 +76,8 @@ class DownloadThread(threading.Thread):
                     out_file.close()
             except:
                 traceback.print_exc()
+                print(v)
+                print(type(v))
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
             print("Download : " + name + " " + chapter_name + " " + str(k))
