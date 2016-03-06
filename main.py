@@ -112,7 +112,11 @@ class MongodbManager:
                 self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": 2}})
             else:
                 self = chapter['self']
-                self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": -1}})
+                if 'download_failed' in chapter.keys():
+                    failed = chapter['download_failed'] + 1
+                else:
+                    failed = 1
+                self.db.comic.update_one({'_id': chapter['_id']}, {"$set": {"flag": -1, "download_failed": failed}})
         except:
             print("Callback Error.")
 
@@ -131,6 +135,8 @@ class MongodbManager:
                     chapter['referer'] = comic_list['url']
                 else:
                     chapter['referer'] = i['referer']
+                if 'download_failed' in i.keys() and i['download_failed'] >= 5:
+                    pass
                 chapter['callback'] = self.callback
                 self.dm.append(chapter)
                 self.db.comic.update_one({'_id': i['_id']}, {'$set': {'flag': 1}})

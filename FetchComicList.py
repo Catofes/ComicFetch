@@ -37,6 +37,8 @@ class Handler(BaseHandler):
             self.crawl(url, callback=self.dmzj_new_comic_index)
         elif re.match("http://manhua.dmzj.com/", url):
             self.crawl(url, callback=self.dmzj_old_comic_index)
+        elif re.match("http://www.dm5.com/", url):
+            self.crawl(url, callback=self.dm5_comic_index)
         else:
             pass
 
@@ -107,11 +109,66 @@ class Handler(BaseHandler):
                 pass
             next = response.doc('.next_url')
             if next:
-                self.crawl(next.attr.href, callback=self.dmzj_comic_chapter, save=data, fetch_type='js')
+                numPage = re.sub("\D", "", response.doc('.numPage').text())
+                allPage = re.sub("\D", "", response.doc('.all_page').text())
+                if numPage != allPage:
+                    self.crawl(next.attr.href, callback=self.dmzj_comic_chapter, save=data, fetch_type='js')
+                else:
+                    return self.download_chapter(data)
             else:
                 return self.download_chapter(data)
             return
         return self.download_chapter(data)
+
+    @config(priority=1, age=5 * 60)
+    def dm5_comic_index(self, response):
+        t = time.time()
+        name = response.doc('.inbt_title_h2').text()
+        self.db.comic_list.update_one({'url': response.url},
+                                      {'$set': {'update_time': time.time(), 'name': name, 'mobi': False, 'mobi_size': 0,
+                                                'mobi_failed': 0}})
+        chapters = []
+        named_chapters = []
+        for each in response.doc('.lan2 a').items():
+            if re.match("http://www.dm5.com/m", each.attr.href):
+                chapters.append(each)
+        for i in range(0, len(chapters)):
+            if re.match(name + "漫画", chapters[i].text()):
+                chapter = re.sub(name + "漫画\s", "", chapters[i].text(), count=1)
+            else:
+                chapter = chapters[i].text()
+            named_chapters.append({"chapter": chapter, "url": chapters[i].attr.href})
+        for i in range(0, len(named_chapters)):
+            each = named_chapters[i]
+            if i - 1 >= 0:
+                next_name = named_chapters[i - 1]['chapter']
+            else:
+                next_name = None
+            each['next'] = next_name
+            result = self.db.comic.find_one({'name': name, 'chapter': each['chapter']})
+            if result and ('next' not in result.keys() or (not result['next'] and next_name) or (
+                result['next'] != next_name)):
+                self.db.comic.update_one({'_id': result['_id']}, {'$set': {'next': next_name}})
+            if not result or result['flag'] == -1:
+                self.crawl(each['url'], callback=self.dm5_comic_chapter, save=
+                {'name': name, 'chapter': each['chapter'], 'pic': {}, 'update_time': t, 'next': next_name,
+                 'referer': each['url']}, fetch_type='js')
+
+    @config(priority=2, age=5 * 60)
+    def dm5_comic_chapter(self, response):
+        data = response.save
+        image = response.doc('#cp_image').attr.src
+        now_page = response.doc('#c_page').text()
+        all_page = response.doc('.juh > span')
+        for each in all_page.items():
+            all_page = each
+        all_page = re.sub("\D", "", all_page.text())
+        data['pic'][now_page] = image
+        if now_page != all_page:
+            self.crawl(response.doc('.view_yan2 > a').attr.href, callback=self.dm5_comic_chapter, save=data,
+                       fetch_type='js')
+        else:
+            return self.download_chapter(data)
 
     def on_message(self, project, message):
         for each in message:

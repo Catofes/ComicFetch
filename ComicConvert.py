@@ -83,9 +83,9 @@ class Convert:
             p = subprocess.run(["nice",
                                 "-n", "10",
                                 "kcc-c2e",
+                                "-f", "MOBI",
                                 "-o", mobi_path,
                                 "-t", title,
-                                "-f", "MOBI",
                                 pic_path
                                 ], stdout=subprocess.PIPE)
             if not re.search('MOBI', str(p.stdout)):
