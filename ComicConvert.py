@@ -126,10 +126,10 @@ class Convert:
                 time.sleep(1)
                 if not self.fetch_a_chapter():
                     break
-            while True:
-                time.sleep(1)
-                if not self.fetch_a_comic():
-                    break
+            # while True:
+            #     time.sleep(1)
+            #     if not self.fetch_a_comic():
+            #         break
 
 
 if __name__ == '__main__':
