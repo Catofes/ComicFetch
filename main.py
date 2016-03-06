@@ -106,7 +106,7 @@ class MongodbManager:
             self.dm.finished_threads = -self.dm.max_thread
         while True:
             self.add_data()
-            if self.dm.finished_threads == 0:
+            if self.comic_name and self.dm.finished_threads == 0:
                 break
             time.sleep(60)
 
