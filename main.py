@@ -19,6 +19,7 @@ class DownloadManager:
         self.data = queue.Queue()
         self.tmp_path = "/tmp"
         self.event = threading.Event()
+        self.finished_threads = 0
 
     def append(self, chapter):
         self.data.put(chapter)
@@ -48,6 +49,9 @@ class DownloadThread(threading.Thread):
                 chapter = self.manager.data.get(False)
             except queue.Empty:
                 self.manager.event.clear()
+                if self.manager.finished_threads < 0:
+                    self.manager.finished_threads += 1
+                    break
                 continue
             if not chapter:
                 continue
@@ -64,7 +68,7 @@ class DownloadThread(threading.Thread):
         os.makedirs(path, exist_ok=True)
         for (k, v) in pic.items():
             try:
-                req = urllib.request.Request(urllib.parse.quote(v, ":?=/"))
+                req = urllib.request.Request(urllib.parse.quote(v, ":?=/_&"))
                 req.add_header('Referer', referer)
                 with urllib.request.urlopen(req) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
                     data = response.read()  # a `bytes` object
@@ -75,7 +79,7 @@ class DownloadThread(threading.Thread):
                 print("Download Error: " + name + " " + chapter_name + " " + str(k))
                 return False
             print("Download : " + name + " " + chapter_name + " " + str(k))
-        time.sleep(3)
+        time.sleep(1)
         return True
 
 
@@ -98,9 +102,11 @@ class MongodbManager:
         self.build_selector()
         self.db.comic.update_many({'flag': 1},
                                   {'$set': {'flag': 0}})
+        if self.comic_name:
+            self.dm.finished_threads = -self.dm.max_thread
         while True:
             self.add_data()
-            if self.comic_name:
+            if self.dm.finished_threads == 0:
                 break
             time.sleep(60)
 
