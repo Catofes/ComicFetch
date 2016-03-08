@@ -61,9 +61,15 @@ class Handler(BaseHandler):
             result = self.db.comic.find_one({'name': name, 'chapter': each.text()})
             if result and ('next' not in result.keys() or (not result['next'] and next_name)):
                 self.db.comic.update_one({'_id': result['_id']}, {'$set': {'next': next_name}})
-            if not result or result['flag'] == -1:
-                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter, save=
-                {'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name}, fetch_type='js')
+            if not result:
+                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter,
+                           save={'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name},
+                           fetch_type='js')
+            elif result['flag'] == -1:
+                self.db.comic.update_one({'_id': result['_id']}, {'$set': {'flag': 0}})
+                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter,
+                           save={'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name},
+                           fetch_type='js')
 
     @config(priority=1, age=5 * 60)
     def dmzj_new_comic_index(self, response):
@@ -84,9 +90,15 @@ class Handler(BaseHandler):
             result = self.db.comic.find_one({'name': name, 'chapter': each.text()})
             if result and ('next' not in result.keys() or (not result['next'] and next_name)):
                 self.db.comic.update_one({'_id': result['_id']}, {'$set': {'next': next_name}})
-            if not result or result['flag'] == -1:
-                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter, save=
-                {'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name}, fetch_type='js')
+            if not result:
+                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter,
+                           save={'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name},
+                           fetch_type='js')
+            elif result['flag'] == -1:
+                self.db.comic.update_one({'_id': result['_id']}, {'$set': {'flag': 0}})
+                self.crawl(each.attr.href, callback=self.dmzj_comic_chapter,
+                           save={'name': name, 'chapter': each.text(), 'pic': {}, 'update_time': t, 'next': next_name},
+                           fetch_type='js')
 
     @config(priority=2, age=5 * 60)
     def dmzj_comic_chapter(self, response):
@@ -147,28 +159,39 @@ class Handler(BaseHandler):
             each['next'] = next_name
             result = self.db.comic.find_one({'name': name, 'chapter': each['chapter']})
             if result and ('next' not in result.keys() or (not result['next'] and next_name) or (
-                result['next'] != next_name)):
+                        result['next'] != next_name)):
                 self.db.comic.update_one({'_id': result['_id']}, {'$set': {'next': next_name}})
-            if not result or result['flag'] == -1:
-                self.crawl(each['url'], callback=self.dm5_comic_chapter, save=
-                {'name': name, 'chapter': each['chapter'], 'pic': {}, 'update_time': t, 'next': next_name,
-                 'referer': each['url']}, fetch_type='js')
+            if not result:
+                self.crawl(each['url'], callback=self.dm5_comic_chapter,
+                           save={'name': name, 'chapter': each['chapter'], 'pic': {}, 'update_time': t,
+                                 'next': next_name, 'referer': each['url']}, fetch_type='js')
+            elif result['flag'] == -1:
+                self.db.comic.update_one({'_id': result['_id']}, {'$set': {'flag': 0}})
+                self.crawl(each['url'], callback=self.dm5_comic_chapter,
+                           save={'name': name, 'chapter': each['chapter'], 'pic': {}, 'update_time': t,
+                                 'next': next_name, 'referer': each['url']}, fetch_type='js')
 
     @config(priority=2, age=5 * 60)
     def dm5_comic_chapter(self, response):
         data = response.save
+        if re.search("end", response.url):
+            return self.download_chapter(data)
         image = response.doc('#cp_image').attr.src
+        if not image:
+            self.crawl(response.url, callback=self.dm5_comic_chapter, save=data,
+                       fetch_type='js')
+            return
         now_page = response.doc('#c_page').text()
         all_page = response.doc('.juh > span')
         for each in all_page.items():
             all_page = each
         all_page = re.sub("\D", "", all_page.text())
         data['pic'][now_page] = image
-        if now_page != all_page:
+        if response.doc('.view_yan2 > a'):
             self.crawl(response.doc('.view_yan2 > a').attr.href, callback=self.dm5_comic_chapter, save=data,
                        fetch_type='js')
         else:
-            return self.download_chapter(data)
+            self.download_chapter(data)
 
     def on_message(self, project, message):
         for each in message:

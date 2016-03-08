@@ -70,7 +70,7 @@ class DownloadThread(threading.Thread):
             try:
                 if not v:
                     continue
-                req = urllib.request.Request(urllib.parse.quote(v, ":?=/_&"))
+                req = urllib.request.Request(urllib.parse.quote(v, ":?=/_&%"))
                 req.add_header('Referer', referer)
                 with urllib.request.urlopen(req) as response, open(path + "/" + str(k) + ".jpg", 'wb') as out_file:
                     data = response.read()  # a `bytes` object
