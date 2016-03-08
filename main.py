@@ -91,6 +91,7 @@ class MongodbManager:
         self.client = MongoClient()
         self.db = self.client.comic
         self.comic_name = None
+        self.comic_chapter = None
         self.selector = {}
         self.force = False
 
@@ -99,6 +100,8 @@ class MongodbManager:
             self.selector['flag'] = 0
         if self.comic_name:
             self.selector['name'] = self.comic_name
+        if self.comic_chapter:
+            self.selector['chapter'] = self.comic_chapter
 
     def loop_forever(self):
         self.build_selector()
@@ -158,6 +161,7 @@ def build_arg_parser():
     parser.add_argument('-o', '--output', help="Output path.")
     parser.add_argument('-f', '--force', action='store_true', help="Force Re-download")
     parser.add_argument('-n', '--name', help="Name of Comic.")
+    parser.add_argument('-c', '--chapter', help="Name of Chapter.")
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     return parser
 
@@ -172,6 +176,8 @@ if __name__ == '__main__':
         exit()
     if args.name:
         mm.comic_name = args.name
+        if args.chapter:
+            mm.comic_chapter = args.chapter
     if args.force:
         mm.force = True
     mm.dm.start()
