@@ -52,6 +52,7 @@ class Convert:
         pic_path = self.pic_path + name + "/" + chapter + "/"
         mobi_path = self.mobi_path + name + "/"
         mobi_file = self.mobi_path + name + "/" + chapter + ".mobi"
+        mobi_new_file = self.mobi_path + name + "/" + name + "_" + chapter + ".mobi"
         os.makedirs(mobi_path, exist_ok=True)
         try:
             p = subprocess.run(["nice",
@@ -69,6 +70,7 @@ class Convert:
             print("Convert " + title + " Failed.")
             return False
         size = os.path.getsize(mobi_file)
+        os.rename(mobi_file, mobi_new_file)
         input_chapter['mobi_size'] = int(size)
         return True
 
@@ -126,10 +128,10 @@ class Convert:
                 time.sleep(1)
                 if not self.fetch_a_chapter():
                     break
-            # while True:
-            #     time.sleep(1)
-            #     if not self.fetch_a_comic():
-            #         break
+                    # while True:
+                    #     time.sleep(1)
+                    #     if not self.fetch_a_comic():
+                    #         break
 
 
 if __name__ == '__main__':
