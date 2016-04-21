@@ -54,23 +54,27 @@ class Convert:
         mobi_file = self.mobi_path + name + "/" + chapter + ".mobi"
         mobi_new_file = self.mobi_path + name + "/" + name + "_" + chapter + ".mobi"
         os.makedirs(mobi_path, exist_ok=True)
+        run_line = ["nice", "-n", "10", "kcc-c2e"]
         try:
-            p = subprocess.run(["nice",
-                                "-n", "10",
-                                "kcc-c2e",
-                                "-o", mobi_path,
-                                "-t", title,
-                                "-f", "MOBI",
-                                pic_path
-                                ], stdout=subprocess.PIPE)
+            if 'parameters' in input_chapter.keys():
+                run_line = run_line + str.split(input_chapter['parameters'], " ")
+        except:
+            return False
+        run_line = run_line + ["-o", mobi_path, "-t", title, "-u", "-f", "MOBI", pic_path]
+        try:
+            p = subprocess.run(run_line, stdout=subprocess.PIPE)
             if not re.search('MOBI', str(p.stdout)):
                 print("Convert " + title + " Failed. STDOUT: " + p.stdout)
                 return False
         except:
             print("Convert " + title + " Failed.")
             return False
-        size = os.path.getsize(mobi_file)
-        os.rename(mobi_file, mobi_new_file)
+        try:
+            size = os.path.getsize(mobi_file)
+            os.rename(mobi_file, mobi_new_file)
+        except:
+            print("Convert " + title + " Failed.")
+            return False
         input_chapter['mobi_size'] = int(size)
         return True
 
