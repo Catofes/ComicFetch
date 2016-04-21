@@ -57,8 +57,8 @@ class Convert:
         run_line = ["nice", "-n", "10", "kcc-c2e"]
         try:
             if 'parameters' in input_chapter.keys():
-                run_line = run_line + str.split(input_chapter['parameters'], " ")
-        except:
+                run_line = run_line + input_chapter['parameters'].split(" ")
+        except
             return False
         run_line = run_line + ["-o", mobi_path, "-t", title, "-u", "-f", "MOBI", pic_path]
         try:
