@@ -1,0 +1,8 @@
+pymongo
+pillow
+python-slugify
+psutil
+scandir
+raven
+pyqt5
+pyspider 

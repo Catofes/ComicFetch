@@ -88,7 +88,7 @@ class DownloadThread(threading.Thread):
 class MongodbManager:
     def __init__(self, dm=DownloadManager()):
         self.dm = dm
-        self.client = MongoClient()
+        self.client = MongoClient("mongodb://mongodb:27017/")
         self.db = self.client.comic
         self.comic_name = None
         self.comic_chapter = None

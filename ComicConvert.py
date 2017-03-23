@@ -7,7 +7,7 @@ import time
 
 class Convert:
     def __init__(self):
-        self.client = MongoClient()
+        self.client = MongoClient("mongodb://mongodb:27017/")
         self.db = self.client.comic
         self.pic_path = os.path.abspath(".") + "/Download/"
         self.mobi_path = os.path.abspath(".") + "/mobi/"
