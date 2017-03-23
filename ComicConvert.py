@@ -1,3 +1,5 @@
+import argparse
+
 from pymongo import MongoClient
 import subprocess
 import os
@@ -6,11 +8,11 @@ import time
 
 
 class Convert:
-    def __init__(self):
+    def __init__(self, download_path, mobi_path):
         self.client = MongoClient("mongodb://mongodb:27017/")
         self.db = self.client.comic
-        self.pic_path = os.path.abspath(".") + "/Download/"
-        self.mobi_path = os.path.abspath(".") + "/mobi/"
+        self.pic_path = os.path.abspath(download_path)
+        self.mobi_path = os.path.abspath(mobi_path)
 
     def chapter_callback(self, chapter, flag=True):
         if flag:
@@ -139,5 +141,8 @@ class Convert:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Comic convert to mobi.')
+    parser.add_argument('-d', '--download', help="Download path")
+    parser.add_argument('-m', '--mobi', help="Output mobi path.")
     convert = Convert()
     convert.loop()
