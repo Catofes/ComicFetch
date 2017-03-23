@@ -11,8 +11,8 @@ class Convert:
     def __init__(self, download_path, mobi_path):
         self.client = MongoClient("mongodb://mongodb:27017/")
         self.db = self.client.comic
-        self.pic_path = os.path.abspath(download_path)+"/"
-        self.mobi_path = os.path.abspath(mobi_path)+"/"
+        self.pic_path = os.path.abspath(download_path) + "/"
+        self.mobi_path = os.path.abspath(mobi_path) + "/"
 
     def chapter_callback(self, chapter, flag=True):
         if flag:
@@ -56,6 +56,7 @@ class Convert:
         mobi_file = self.mobi_path + name + "/" + chapter + ".mobi"
         mobi_new_file = self.mobi_path + name + "/" + name + "_" + chapter + ".mobi"
         os.makedirs(mobi_path, exist_ok=True)
+        print("Convert %s, From %s to %s" % (title, pic_path, mobi_file))
         run_line = ["nice", "-n", "10", "kcc-c2e"]
         try:
             if 'parameters' in input_chapter.keys():
