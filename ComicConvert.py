@@ -144,5 +144,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Comic convert to mobi.')
     parser.add_argument('-d', '--download', help="Download path")
     parser.add_argument('-m', '--mobi', help="Output mobi path.")
-    convert = Convert()
+    args = parser.parse_args()
+    convert = Convert(args.d, args.m)
     convert.loop()
