@@ -16,10 +16,16 @@ RUN wget https://kcc.iosphe.re/Linux/ -O /tmp/kcc.deb && dpkg -i /tmp/kcc.deb
 
 RUN apt install -y python3-pycurl
 
-COPY . /usr/app/
+COPY ./requirements.txt /usr/app/
 
 RUN pip3 install -r requirements.txt
 
 RUN locale-gen en_US.UTF-8 
 
 ENV LANG en_US.UTF-8
+
+RUN useradd -u 1000 --create-home user
+
+USER user
+
+COPY . /usr/app
